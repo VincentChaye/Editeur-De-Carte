@@ -2,74 +2,107 @@ import React, { useState, useRef } from "react";
 import html2canvas from "html2canvas";
 
 export default function EditeurCartes() {
-  const [champs, setChamps] = useState([
-    { nom: "Nom", valeur: "", type: "texte", align: "left", offset: 0, couleur: "#000000", taille: 16, top: 0, largeur: 100, hauteur: 100 }
-  ]);
-  const cardRef = useRef(null);
-  const fileInputRef = useRef();
-
-  const ajouterChamp = () => {
-    setChamps([
-      ...champs,
-      { nom: `Champ ${champs.length + 1}`, valeur: "", type: "texte", align: "left", offset: 0, couleur: "#000000", taille: 16, top: 0, largeur: 100, hauteur: 100 }
-    ]);
-  };
-
-  const modifierChamp = (index, cle, nouvelleValeur) => {
-    const nouveauxChamps = [...champs];
-    nouveauxChamps[index][cle] = ["offset", "taille", "top", "largeur", "hauteur"].includes(cle) ? parseFloat(nouvelleValeur) : nouvelleValeur;
-    setChamps(nouveauxChamps);
-  };
-
-  const handleImageUpload = (index, file) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const nouveauxChamps = [...champs];
-      nouveauxChamps[index].valeur = e.target.result;
-      setChamps(nouveauxChamps);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const exporterImage = async () => {
-    if (!cardRef.current) return;
-    const canvas = await html2canvas(cardRef.current);
-    const link = document.createElement("a");
-    link.download = "carte.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  };
-
-  const exporterJSON = () => {
-    const blob = new Blob([JSON.stringify(champs, null, 2)], { type: "application/json" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "carte.json";
-    link.click();
-  };
-
-  const importerJSON = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (Array.isArray(data)) setChamps(data);
-      } catch (error) {
-        alert("Fichier JSON invalide");
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  return (
-    <div className="flex flex-col md:flex-row gap-6">
-      {/* Formulaire d'édition */}
-      <div className="w-full md:w-1/2">
-        <h2 className="text-xl font-semibold mb-2">Éditeur</h2>
-        {champs.map((champ, index) => (
-          <div key={index} className="mb-4 space-y-1">
+	const [champs, setChamps] = useState(() => {
+	  const saved = localStorage.getItem("carte_champs");
+	  return saved ? JSON.parse(saved) : [
+		{ nom: "Nom", valeur: "", type: "texte", align: "left", offset: 0, couleur: "#000000", opacite: 1, taille: 16, top: 0, largeur: 100, hauteur: 100 }
+	  ];
+	});
+  
+	const cardRef = useRef(null);
+	const fileInputRef = useRef();
+  
+	const ajouterChamp = () => {
+	  const nouveauxChamps = [
+		...champs,
+		{ nom: `Champ ${champs.length + 1}`, valeur: "", type: "texte", align: "left", offset: 0, couleur: "#000000", opacite: 1, taille: 16, top: 0, largeur: 100, hauteur: 100 }
+	  ];
+	  setChamps(nouveauxChamps);
+	  localStorage.setItem("carte_champs", JSON.stringify(nouveauxChamps));
+	};
+  
+	const supprimerChamp = (index) => {
+	  const nouveauxChamps = champs.filter((_, i) => i !== index);
+	  setChamps(nouveauxChamps);
+	  localStorage.setItem("carte_champs", JSON.stringify(nouveauxChamps));
+	};
+  
+	const resetCarte = () => {
+	  localStorage.removeItem("carte_champs");
+	  setChamps([{
+		nom: "Nom", valeur: "", type: "texte", align: "left", offset: 0, couleur: "#000000", opacite: 1, taille: 16, top: 0, largeur: 100, hauteur: 100
+	  }]);
+	};
+  
+	const modifierChamp = (index, cle, nouvelleValeur) => {
+	  const nouveauxChamps = [...champs];
+	  nouveauxChamps[index][cle] = ["offset", "taille", "top", "largeur", "hauteur", "opacite"].includes(cle) ? parseFloat(nouvelleValeur) : nouvelleValeur;
+	  setChamps(nouveauxChamps);
+	  localStorage.setItem("carte_champs", JSON.stringify(nouveauxChamps));
+	};
+  
+	const handleImageUpload = (index, file) => {
+	  const reader = new FileReader();
+	  reader.onload = (e) => {
+		const nouveauxChamps = [...champs];
+		nouveauxChamps[index].valeur = e.target.result;
+		setChamps(nouveauxChamps);
+		localStorage.setItem("carte_champs", JSON.stringify(nouveauxChamps));
+	  };
+	  reader.readAsDataURL(file);
+	};
+  
+	const exporterImage = async () => {
+	  if (!cardRef.current) return;
+	  const canvas = await html2canvas(cardRef.current);
+	  const link = document.createElement("a");
+	  link.download = "carte.png";
+	  link.href = canvas.toDataURL("image/png");
+	  link.click();
+	};
+  
+	const exporterJSON = () => {
+	  const blob = new Blob([JSON.stringify(champs, null, 2)], { type: "application/json" });
+	  const link = document.createElement("a");
+	  link.href = URL.createObjectURL(blob);
+	  link.download = "carte.json";
+	  link.click();
+	};
+  
+	const importerJSON = (event) => {
+	  const file = event.target.files[0];
+	  if (!file) return;
+	  const reader = new FileReader();
+	  reader.onload = (e) => {
+		try {
+		  const data = JSON.parse(e.target.result);
+		  if (Array.isArray(data)) {
+			setChamps(data);
+			localStorage.setItem("carte_champs", JSON.stringify(data));
+		  }
+		} catch (error) {
+		  alert("Fichier JSON invalide");
+		}
+	  };
+	  reader.readAsText(file);
+	};
+  
+	return (
+	  <div className="flex flex-col md:flex-row gap-6">
+		{/* Formulaire d'édition */}
+		<div className="w-full md:w-1/2">
+		  <h2 className="text-xl font-semibold mb-2">Éditeur</h2>
+		  {champs.map((champ, index) => (
+			<div key={index} className="mb-4 space-y-1 border-b pb-4">
+			  <div className="flex justify-between items-center">
+				<span className="font-semibold">Champ {index + 1}</span>
+				<button
+				  onClick={() => supprimerChamp(index)}
+				  className="text-red-600 hover:underline text-sm"
+				>
+				  Supprimer
+				</button>
+			  </div>
             <select
               className="border px-2 py-1 mr-2"
               value={champ.type}
@@ -167,6 +200,16 @@ export default function EditeurCartes() {
                 />
                 <input
                   type="number"
+                  step="0.01"
+                  min="0"
+                  max="1"
+                  className="border px-2 py-1 w-24 mr-2"
+                  value={champ.opacite}
+                  onChange={(e) => modifierChamp(index, "opacite", e.target.value)}
+                  placeholder="Opacité (0-1)"
+                />
+                <input
+                  type="number"
                   min="8"
                   max="72"
                   className="border px-2 py-1 w-20 mr-2"
@@ -246,13 +289,14 @@ export default function EditeurCartes() {
                   justifyContent: alignment,
                   top: `${champ.top * 37.795}px`,
                   color: champ.couleur,
+                  opacity: champ.opacite,
                   fontSize: champ.type === "texte" ? `${champ.taille}px` : undefined,
                   ...offsetStyle,
                 }}
               >
                 {champ.type === "texte" ? (
                   <>
-                    <span className="font-bold">{champ.nom}:</span>&nbsp;
+                    <span className="font-bold">{champ.nom}</span>&nbsp;
                     <span>{champ.valeur}</span>
                   </>
                 ) : (
