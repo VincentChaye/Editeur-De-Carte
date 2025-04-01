@@ -3,7 +3,7 @@ import html2canvas from "html2canvas";
 
 export default function EditeurCartes() {
   const [champs, setChamps] = useState([
-    { nom: "Nom", valeur: "", type: "texte", align: "left", offset: 0, couleur: "#000000", taille: 16, top: 0 }
+    { nom: "Nom", valeur: "", type: "texte", align: "left", offset: 0, couleur: "#000000", taille: 16, top: 0, largeur: 100, hauteur: 100 }
   ]);
   const cardRef = useRef(null);
   const fileInputRef = useRef();
@@ -11,14 +11,24 @@ export default function EditeurCartes() {
   const ajouterChamp = () => {
     setChamps([
       ...champs,
-      { nom: `Champ ${champs.length + 1}`, valeur: "", type: "texte", align: "left", offset: 0, couleur: "#000000", taille: 16, top: 0 }
+      { nom: `Champ ${champs.length + 1}`, valeur: "", type: "texte", align: "left", offset: 0, couleur: "#000000", taille: 16, top: 0, largeur: 100, hauteur: 100 }
     ]);
   };
 
   const modifierChamp = (index, cle, nouvelleValeur) => {
     const nouveauxChamps = [...champs];
-    nouveauxChamps[index][cle] = cle === "offset" || cle === "taille" || cle === "top" ? parseFloat(nouvelleValeur) : nouvelleValeur;
+    nouveauxChamps[index][cle] = ["offset", "taille", "top", "largeur", "hauteur"].includes(cle) ? parseFloat(nouvelleValeur) : nouvelleValeur;
     setChamps(nouveauxChamps);
+  };
+
+  const handleImageUpload = (index, file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const nouveauxChamps = [...champs];
+      nouveauxChamps[index].valeur = e.target.result;
+      setChamps(nouveauxChamps);
+    };
+    reader.readAsDataURL(file);
   };
 
   const exporterImage = async () => {
@@ -84,13 +94,49 @@ export default function EditeurCartes() {
                 placeholder="Valeur"
               />
             ) : (
-              <input
-                type="text"
-                className="border px-2 py-1 mr-2"
-                value={champ.valeur}
-                onChange={(e) => modifierChamp(index, "valeur", e.target.value)}
-                placeholder="URL de l'image"
-              />
+              <>
+                <input
+                  type="text"
+                  className="border px-2 py-1 mr-2"
+                  value={champ.valeur}
+                  onChange={(e) => modifierChamp(index, "valeur", e.target.value)}
+                  placeholder="URL de l'image"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="border px-2 py-1 mr-2"
+                  onChange={(e) => handleImageUpload(index, e.target.files[0])}
+                />
+                <div
+                  className="border border-dashed p-2 text-center text-sm cursor-pointer bg-gray-50"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (e.dataTransfer.files.length > 0) {
+                      handleImageUpload(index, e.dataTransfer.files[0]);
+                    }
+                  }}
+                >
+                  Glisser-déposer une image ici
+                </div>
+                <input
+                  type="number"
+                  min="10"
+                  className="border px-2 py-1 w-24 mr-2"
+                  value={champ.largeur}
+                  onChange={(e) => modifierChamp(index, "largeur", e.target.value)}
+                  placeholder="Largeur (px)"
+                />
+                <input
+                  type="number"
+                  min="10"
+                  className="border px-2 py-1 w-24"
+                  value={champ.hauteur}
+                  onChange={(e) => modifierChamp(index, "hauteur", e.target.value)}
+                  placeholder="Hauteur (px)"
+                />
+              </>
             )}
             <select
               className="border px-2 py-1 mr-2"
@@ -146,25 +192,25 @@ export default function EditeurCartes() {
             onClick={ajouterChamp}
             className="bg-blue-500 text-white px-4 py-2 rounded"
           >
-            ➕ Ajouter un champ
+            Ajouter un champ
           </button>
           <button
             onClick={exporterImage}
             className="bg-green-600 text-white px-4 py-2 rounded"
           >
-            📤 Exporter en PNG
+            Exporter en PNG
           </button>
           <button
             onClick={exporterJSON}
             className="bg-yellow-500 text-white px-4 py-2 rounded"
           >
-            💾 Exporter JSON
+            Exporter JSON
           </button>
           <button
             onClick={() => fileInputRef.current.click()}
             className="bg-purple-600 text-white px-4 py-2 rounded"
           >
-            📂 Importer JSON
+            Importer JSON
           </button>
           <input
             type="file"
@@ -206,11 +252,19 @@ export default function EditeurCartes() {
               >
                 {champ.type === "texte" ? (
                   <>
-                    <span className="font-bold">{champ.nom}</span>&nbsp;
+                    <span className="font-bold">{champ.nom}:</span>&nbsp;
                     <span>{champ.valeur}</span>
                   </>
                 ) : (
-                  <img src={champ.valeur} alt={champ.nom} className="max-w-[200px] max-h-[150px]" />
+                  <img
+                    src={champ.valeur}
+                    alt={champ.nom}
+                    style={{
+                      width: champ.largeur + "px",
+                      height: champ.hauteur + "px",
+                      objectFit: "contain"
+                    }}
+                  />
                 )}
               </div>
             );
