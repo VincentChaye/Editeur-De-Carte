@@ -31,21 +31,28 @@ export default function EditeurCartes() {
 	const cardRef = useRef(null);
 	const fileInputRef = useRef();
 
+	const cmToPx = (cm) => cm * 37.8;
+	const [largeurCarte, setLargeurCarte] = useState(8.5); // en cm
+	const [hauteurCarte, setHauteurCarte] = useState(13);  // en cm
+
+
+
+
 	const ajouterChamp = () => {
 		const nouveauxChamps = [
 			...champs,
 			{
 				nom: "Nom",
 				valeur: "",
-				type: "texte",
-				align: "left",
-				offset: 0,
+				type: "",
+				align: "Left",
+				offset: "",
 				couleur: "#000000",
-				opacite: 1,
-				taille: 16,
-				top: 0,
-				largeur: 100,
-				hauteur: 100,
+				opacite: "",
+				taille: "",
+				top: "",
+				largeur: "",
+				hauteur: "",
 				gras: false,
 				italique: false,
 				souligne: false,
@@ -124,7 +131,7 @@ export default function EditeurCartes() {
 		pdf.save("carte.pdf");
 	};
 
-	  
+
 	const exporterJSON = () => {
 		const blob = new Blob([JSON.stringify(champs, null, 2)], { type: "application/json" });
 		const link = document.createElement("a");
@@ -217,12 +224,12 @@ export default function EditeurCartes() {
 									value={champ.font}
 									onChange={(e) => modifierChamp(index, "font", e.target.value)}
 								>
-									<option value="Roboto">Roboto</option>
-									<option value="Open Sans">Open Sans</option>
-									<option value="Lobster">Lobster</option>
-									<option value="Merriweather">Merriweather</option>
-									<option value="Pacifico">Pacifico</option>
-									<option value="Poppins">Poppins</option>
+									<option value="Roboto" style={{ fontFamily: "Roboto" }}>Roboto</option>
+									<option value="Open Sans" style={{ fontFamily: "Open Sans" }}>Open Sans</option>
+									<option value="Lobster" style={{ fontFamily: "Lobster" }}>Lobster</option>
+									<option value="Merriweather" style={{ fontFamily: "Merriweather" }}>Merriweather</option>
+									<option value="Pacifico" style={{ fontFamily: "Pacifico" }}>Pacifico</option>
+									<option value="Poppins" style={{ fontFamily: "Roboto" }}>Poppins</option>
 								</select>
 							</>
 						) : (
@@ -370,13 +377,69 @@ export default function EditeurCartes() {
 					/>
 				</div>
 			</div>
-
+			
 			{/* Carte visuelle */}
 			<div className="w-full md:w-1/2">
 				<h2 className="text-xl font-semibold mb-2">Aperçu</h2>
+				<div className="mb-4 space-y-2">
+					<label className="block text-sm font-medium">Format de la carte</label>
+					<select
+						className="border px-2 py-1 w-full"
+						onChange={(e) => {
+							const [w, h] = e.target.value.split("x").map(parseFloat);
+							if (!isNaN(w) && !isNaN(h)) {
+								setLargeurCarte(w);
+								setHauteurCarte(h);
+							}
+						}}
+						defaultValue="custom"
+					>
+						<option value="custom">Personnalisé</option>
+						<option value="5.5x9">Carte de jeu – 5.4 × 9 cm</option>
+						<option value="10.5x14.8">Format A6 – 10.5 × 14.8 cm</option>
+						<option value="14.8x21">Format A5 – 14.8 × 21 cm</option>
+					</select>
+
+					{/* Champs affichés uniquement si le format est personnalisé */}
+					<div className="flex gap-4">
+						<label className="block text-sm">
+							Largeur (cm)
+							<input
+								type="number"
+								min="3"
+								step="0.1"
+								className="border px-2 py-1 w-24"
+								value={largeurCarte}
+								onChange={(e) => setLargeurCarte(parseFloat(e.target.value))}
+							/>
+						</label>
+						<label className="block text-sm">
+							Hauteur (cm)
+							<input
+								type="number"
+								min="3"
+								step="0.1"
+								className="border px-2 py-1 w-24"
+								value={hauteurCarte}
+								onChange={(e) => setHauteurCarte(parseFloat(e.target.value))}
+							/>
+						</label>
+					</div>
+				</div>
+
 				<div
 					ref={cardRef}
-					className="w-80 h-[500px] p-4 bg-white border shadow-lg rounded-lg relative overflow-hidden"
+					style={{
+						width: `${cmToPx(largeurCarte)}px`,
+						height: `${cmToPx(hauteurCarte)}px`,
+						padding: "1rem",
+						backgroundColor: "white",
+						border: "1px solid #e5e7eb",
+						boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+						borderRadius: "0.5rem",
+						position: "relative",
+						overflow: "hidden"
+					}}					
 				>
 					{champs.map((champ, index) => {
 						const alignment = champ.align === "center" ? "center" : champ.align === "right" ? "flex-end" : "flex-start";
