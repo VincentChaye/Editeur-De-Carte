@@ -124,7 +124,7 @@ export default function EditeurCartes() {
 		pdf.save("carte.pdf");
 	};
 
-
+	  
 	const exporterJSON = () => {
 		const blob = new Blob([JSON.stringify(champs, null, 2)], { type: "application/json" });
 		const link = document.createElement("a");
@@ -332,32 +332,32 @@ export default function EditeurCartes() {
 				<div className="mt-4 space-x-2">
 					<button
 						onClick={ajouterChamp}
-						className="bg-blue-500 text-white px-4 py-2 rounded"
+						className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
 					>
 						Ajouter un champ
 					</button>
 					<button
 						onClick={exporterPNG}
-						className="bg-green-600 text-white px-4 py-2 rounded"
+						className="bg-green-600 text-white px-4 py-2 rounded mt-2"
 					>
 						Exporter en PNG
 					</button>
 					<button
 						onClick={exporterPDF}
-						className="bg-red-500 text-white px-4 py-2 rounded"
+						className="bg-red-500 text-white px-4 py-2 rounded mt-2"
 					>
 						Exporter en PDF
 					</button>
 
 					<button
 						onClick={exporterJSON}
-						className="bg-yellow-500 text-white px-4 py-2 rounded"
+						className="bg-yellow-500 text-white px-4 py-2 rounded mt-2"
 					>
 						Exporter JSON
 					</button>
 					<button
 						onClick={() => fileInputRef.current.click()}
-						className="bg-purple-600 text-white px-4 py-2 rounded"
+						className="bg-purple-600 text-white px-4 py-2 rounded mt-2"
 					>
 						Importer JSON
 					</button>
