@@ -58,7 +58,7 @@ export default function EditeurCartes() {
 			{
 				nom: "Nom",
 				valeur: "",
-				type: "",
+				type: "texte",
 				align: "Left",
 				offset: "",
 				couleur: "#000000",
