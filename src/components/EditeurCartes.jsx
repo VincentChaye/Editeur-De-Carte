@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef,useEffect } from "react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
@@ -32,10 +32,24 @@ export default function EditeurCartes() {
 	const fileInputRef = useRef();
 
 	const cmToPx = (cm) => cm * 37.8;
-	const [largeurCarte, setLargeurCarte] = useState(8.5); // en cm
-	const [hauteurCarte, setHauteurCarte] = useState(13);  // en cm
 
-
+	const [largeurCarte, setLargeurCarte] = useState(() => {
+		const saved = localStorage.getItem("carte_largeur");
+		return saved ? parseFloat(saved) : 8.5; // valeur par défaut en cm
+	});
+	
+	const [hauteurCarte, setHauteurCarte] = useState(() => {
+		const saved = localStorage.getItem("carte_hauteur");
+		return saved ? parseFloat(saved) : 13; // valeur par défaut en cm
+	});
+	
+	useEffect(() => {
+		localStorage.setItem("carte_largeur", largeurCarte);
+	}, [largeurCarte]);
+	
+	useEffect(() => {
+		localStorage.setItem("carte_hauteur", hauteurCarte);
+	}, [hauteurCarte]);
 
 
 	const ajouterChamp = () => {
@@ -111,25 +125,54 @@ export default function EditeurCartes() {
 
 	const exporterPNG = async () => {
 		if (!cardRef.current) return;
-		const canvas = await html2canvas(cardRef.current);
+	
+		const scale = 2;
+		const canvas = await html2canvas(cardRef.current, { scale });
+	
+		// 👉 Créer un canvas temporaire à taille réelle
+		const trueWidth = canvas.width / scale;
+		const trueHeight = canvas.height / scale;
+	
+		const resizedCanvas = document.createElement("canvas");
+		resizedCanvas.width = trueWidth;
+		resizedCanvas.height = trueHeight;
+	
+		const ctx = resizedCanvas.getContext("2d");
+		ctx.drawImage(canvas, 0, 0, trueWidth, trueHeight);
+	
 		const link = document.createElement("a");
 		link.download = "carte.png";
-		link.href = canvas.toDataURL("image/png");
+		link.href = resizedCanvas.toDataURL("image/png");
 		link.click();
 	};
+	
+	
 
 	const exporterPDF = async () => {
 		if (!cardRef.current) return;
-		const canvas = await html2canvas(cardRef.current);
+	
+		const scale = 2; // qualité d'image améliorée
+		const canvas = await html2canvas(cardRef.current, { scale });
+	
 		const imgData = canvas.toDataURL("image/png");
-
-		const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
-		const pdfWidth = pdf.internal.pageSize.getWidth();
-		const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
+	
+		const largeurPx = canvas.width;
+		const hauteurPx = canvas.height;
+	
+		const pdfWidth = (largeurPx / scale) * 0.2646; // 1px ≈ 0.2646 mm
+		const pdfHeight = (hauteurPx / scale) * 0.2646;
+	
+		const pdf = new jsPDF({
+			orientation: pdfWidth > pdfHeight ? "landscape" : "portrait",
+			unit: "mm",
+			format: [pdfWidth, pdfHeight],
+		});
+	
 		pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 		pdf.save("carte.pdf");
 	};
+	
+	
 
 
 	const exporterJSON = () => {
@@ -396,8 +439,8 @@ export default function EditeurCartes() {
 					>
 						<option value="custom">Personnalisé</option>
 						<option value="5.5x9">Carte de jeu – 5.4 × 9 cm</option>
-						<option value="10.5x14.8">Format A6 – 10.5 × 14.8 cm</option>
-						<option value="14.8x21">Format A5 – 14.8 × 21 cm</option>
+						<option value="10.5x14.8">Format RDM – 10.5 × 14.8 cm</option>
+						<option value="14.8x21">Format RDM – 14.8 × 21 cm</option>
 					</select>
 
 					{/* Champs affichés uniquement si le format est personnalisé */}
