@@ -248,7 +248,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 		setCartes(updated);
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 	};
-	
+
 
 	const handleImageUpload = (index, file) => {
 		const reader = new FileReader();
@@ -800,9 +800,8 @@ export default function EditeurCartes({ deckNom, onReset }) {
 					{champs.map((champ, index) => {
 						const alignment = champ.align === "center" ? "center" : champ.align === "right" ? "flex-end" : "flex-start";
 
-						const baseTransform = champ.align === "center"
-							? `translateX(-50%) rotate(${champ.rotation || 0}deg)`
-							: `rotate(${champ.rotation || 0}deg)`;
+						const baseTransform =
+							`translate(${champ.align === "center" ? "-50%" : "0"}, -50%) rotate(${champ.rotation || 0}deg)`;
 
 						const offsetStyle = champ.align === "left"
 							? { left: `${champ.offset}px` }
@@ -821,7 +820,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 									color: champ.couleur,
 									opacity: champ.opacite,
 									fontSize: champ.type === "texte" ? `${champ.taille}px` : undefined,
-									transform: baseTransform,
+									transform: `translate(-50%, -50%) rotate(${champ.rotation || 0}deg)`,
 									...offsetStyle,
 								}}
 							>
