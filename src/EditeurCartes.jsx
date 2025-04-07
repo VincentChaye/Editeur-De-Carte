@@ -21,10 +21,14 @@ export default function EditeurCartes({ deckNom, onReset }) {
 
 
 	const carteActive = cartes.find((c) => c.id === carteActiveId);
+	useEffect(() => {
+		if (carteActive) {
+			setChampsOuverts(carteActive.champs.map(() => false));
+		}
+	}, [carteActiveId]);
+
 	const champs = carteActive?.champs ?? [];
-	const [champsOuverts, setChampsOuverts] = useState(() =>
-		champs.map(() => true)
-	);
+	const [champsOuverts, setChampsOuverts] = useState([]);
 
 
 	const toggleChamp = (index) => {
@@ -79,14 +83,14 @@ export default function EditeurCartes({ deckNom, onReset }) {
 				valeur: "",
 				type: "texte",
 				align: "left",
-				offset: 0,
+				offset: "",
 				couleur: "#000000",
-				opacite: 1,
-				taille: 16,
-				top: 0,
+				opacite: "",
+				taille: "",
+				top: "",
 				largeur: 100,
 				hauteur: 100,
-				rotation: 0,
+				rotation: "",
 				gras: false,
 				italique: false,
 				souligne: false,
@@ -456,7 +460,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 
 							<div className="flex items-center gap-2">
 								<span className="text-sm text-gray-500" onClick={() => toggleChamp(index)}>
-									{champsOuverts[index] ? "▲" : "▼"}
+									{champsOuverts[index] ? "▼" : "▲"}
 								</span>
 								<button
 									onClick={() => supprimerChamp(index)}
@@ -597,8 +601,8 @@ export default function EditeurCartes({ deckNom, onReset }) {
 										/>
 										<input
 											type="number"
-											min="8"
-											max="72"
+											min=""
+											max=""
 											className="border px-2 py-1 w-20 mr-2"
 											value={champ.taille}
 											onChange={(e) => modifierChamp(index, "taille", e.target.value)}
@@ -610,7 +614,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 								<input
 									type="number"
 									step="0.1"
-									min="0"
+									min=""
 									className="border px-2 py-1 w-20 mr-2"
 									value={champ.offset}
 									onChange={(e) => modifierChamp(index, "offset", e.target.value)}
@@ -619,7 +623,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 								<input
 									type="number"
 									step="0.1"
-									min="0"
+									min=""
 									className="border px-2 py-1 w-24 mr-2"
 									value={champ.top}
 									onChange={(e) => modifierChamp(index, "top", e.target.value)}
