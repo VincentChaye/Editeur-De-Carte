@@ -1,11 +1,33 @@
-import React from "react";
-import EditeurCartes from "./components/EditeurCartes";
+import React, { useState, useEffect } from "react";
+import AccueilDeck from "./AccueilDeck";
+import EditeurCartes from "./EditeurCartes";
 
 export default function App() {
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Éditeur de cartes de jeu</h1>
-      <EditeurCartes />
-    </div>
-  );
+	const [deckNom, setDeckNom] = useState("");
+
+	useEffect(() => {
+		const saved = localStorage.getItem("deck_nom");
+		if (saved) setDeckNom(saved);
+	}, []);
+
+	return (
+		<div className="min-h-screen bg-gray-100 p-4">
+			{deckNom ? (
+				<EditeurCartes
+					deckNom={deckNom}
+					onReset={() => {
+						setDeckNom("");
+						localStorage.removeItem("deck_nom");
+					}}
+				/>
+			) : (
+				<AccueilDeck
+					onCreate={(nom) => {
+						setDeckNom(nom);
+						localStorage.setItem("deck_nom", nom);
+					}}
+				/>
+			)}
+		</div>
+	);
 }
