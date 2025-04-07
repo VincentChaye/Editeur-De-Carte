@@ -222,8 +222,6 @@ export default function EditeurCartes({ deckNom, onReset }) {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(nouvellesCartes));
 	};
 
-
-
 	const dupliquerCarte = (carte) => {
 		const copie = {
 			...carte,
@@ -238,6 +236,15 @@ export default function EditeurCartes({ deckNom, onReset }) {
 		setCarteActiveId(copie.id);
 		localStorage.setItem(`${STORAGE_KEY}_active`, copie.id);
 	};
+
+	const modifierTitreCarte = (id, nouveauTitre) => {
+		const updated = cartes.map(c =>
+			c.id === id ? { ...c, titre: nouveauTitre } : c
+		);
+		setCartes(updated);
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+	};
+	
 
 	const handleImageUpload = (index, file) => {
 		const reader = new FileReader();
