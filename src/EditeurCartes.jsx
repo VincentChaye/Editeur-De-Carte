@@ -47,6 +47,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 	const fileInputRef = useRef();
 
 	const [champEnEdition, setChampEnEdition] = useState(null);
+	const [carteEnEditionId, setCarteEnEditionId] = useState(null);
 
 
 	const cmToPx = (cm) => cm * 37.8;
@@ -209,19 +210,34 @@ export default function EditeurCartes({ deckNom, onReset }) {
 	const dupliquerChamp = (index) => {
 		const champACopier = champs[index];
 		const copie = { ...champACopier }; // copie indépendante
-	
+
 		const nouveauxChamps = [...champs];
 		nouveauxChamps.splice(index + 1, 0, copie); // insère après l’original
-	
+
 		const nouvellesCartes = cartes.map((c) =>
 			c.id === carteActiveId ? { ...c, champs: nouveauxChamps } : c
 		);
-	
+
 		setCartes(nouvellesCartes);
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(nouvellesCartes));
 	};
-	
 
+
+
+	const dupliquerCarte = (carte) => {
+		const copie = {
+			...carte,
+			id: uuidv4(),
+			titre: `${carte.titre} (copie)`,
+			champs: carte.champs.map((champ) => ({ ...champ })) // copie profonde des champs
+		};
+
+		const updated = [...cartes, copie];
+		setCartes(updated);
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+		setCarteActiveId(copie.id);
+		localStorage.setItem(`${STORAGE_KEY}_active`, copie.id);
+	};
 
 	const handleImageUpload = (index, file) => {
 		const reader = new FileReader();
@@ -321,7 +337,6 @@ export default function EditeurCartes({ deckNom, onReset }) {
 			try {
 				const data = JSON.parse(e.target.result);
 
-				// 🟦 Cas 1 : un deck complet
 				if (data.deck && Array.isArray(data.cartes)) {
 					const newDeckKey = `deck_${data.deck}_cartes`;
 					localStorage.setItem(newDeckKey, JSON.stringify(data.cartes));
@@ -329,7 +344,6 @@ export default function EditeurCartes({ deckNom, onReset }) {
 					localStorage.setItem(`${newDeckKey}_active`, data.cartes[0]?.id || "");
 					window.location.reload();
 				}
-				// 🟩 Cas 2 : une carte seule (liste de champs)
 				else if (Array.isArray(data)) {
 					const nouvelleCarte = {
 						id: uuidv4(),
@@ -368,16 +382,28 @@ export default function EditeurCartes({ deckNom, onReset }) {
 				{/* Liste des cartes */}
 				{cartes.map((carte) => (
 					<div key={carte.id} className="flex items-center gap-2 mb-2">
-						<button
-							onClick={() => {
-								setCarteActiveId(carte.id);
-								localStorage.setItem(`${STORAGE_KEY}_active`, carte.id);
-							}}
-							className={`px-3 py-1 rounded border ${carte.id === carteActiveId ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"
-								}`}
-						>
-							{carte.titre}
-						</button>
+						{carteEnEditionId === carte.id ? (
+							<input
+								type="text"
+								value={carte.titre}
+								onChange={(e) => modifierTitreCarte(carte.id, e.target.value)}
+								onBlur={() => setCarteEnEditionId(null)}
+								autoFocus
+								className="px-2 py-1 border rounded"
+							/>
+						) : (
+							<button
+								onClick={() => {
+									setCarteActiveId(carte.id);
+									localStorage.setItem(`${STORAGE_KEY}_active`, carte.id);
+								}}
+								onDoubleClick={() => setCarteEnEditionId(carte.id)}
+								className={`px-3 py-1 rounded border ${carte.id === carteActiveId ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"
+									}`}
+							>
+								{carte.titre}
+							</button>
+						)}
 
 						<button
 							onClick={() => supprimerCarte(carte.id)}
@@ -385,6 +411,13 @@ export default function EditeurCartes({ deckNom, onReset }) {
 							title="Supprimer la carte"
 						>
 							🗑
+						</button>
+						<button
+							onClick={() => dupliquerCarte(carte)}
+							className="text-yellow-600 hover:text-yellow-800 text-sm"
+							title="Dupliquer cette carte"
+						>
+							📄
 						</button>
 					</div>
 				))}
@@ -427,7 +460,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 								<button
 									onClick={() => dupliquerChamp(index)}
 									className="text-blue-600 hover:underline text-sm"
->
+								>
 									Dupliquer
 								</button>
 							</div>
