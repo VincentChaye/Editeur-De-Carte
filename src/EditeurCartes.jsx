@@ -753,8 +753,6 @@ export default function EditeurCartes({ deckNom, onReset }) {
 					>
 						<option value="custom">Personnalisé</option>
 						<option value="5.5x9">Carte de jeu – 5.5 × 9 cm</option>
-						<option value="10.5x14.8">Format RDM – 10.5 × 14.8 cm</option>
-						<option value="14.8x21">Format RDM – 14.8 × 21 cm</option>
 					</select>
 
 					{/* Champs affichés uniquement si le format est personnalisé */}
