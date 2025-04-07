@@ -22,6 +22,19 @@ export default function EditeurCartes({ deckNom, onReset }) {
 
 	const carteActive = cartes.find((c) => c.id === carteActiveId);
 	const champs = carteActive?.champs ?? [];
+	const [champsOuverts, setChampsOuverts] = useState(() =>
+		champs.map(() => true)
+	);
+
+
+	const toggleChamp = (index) => {
+		setChampsOuverts((prev) => {
+			const copy = [...prev];
+			copy[index] = !copy[index];
+			return copy;
+		});
+	};
+
 
 	const setCarteActive = (update) => {
 		const nouvellesCartes = cartes.map((c) =>
@@ -33,7 +46,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 	const cardRef = useRef(null);
 	const fileInputRef = useRef();
 
-
+	const [champEnEdition, setChampEnEdition] = useState(null);
 
 
 	const cmToPx = (cm) => cm * 37.8;
@@ -362,187 +375,218 @@ export default function EditeurCartes({ deckNom, onReset }) {
 
 				{champs.map((champ, index) => (
 					<div key={index} className="mb-4 space-y-1 border-b pb-4">
-						<div className="flex justify-between items-center">
-							<span className="font-semibold">Champ {index + 1}</span>
-							<button
-								onClick={() => supprimerChamp(index)}
-								className="text-red-600 hover:underline text-sm"
-							>
-								Supprimer
-							</button>
-						</div>
-						<select
-							className="border px-2 py-1 mr-2"
-							value={champ.type}
-							onChange={(e) => modifierChamp(index, "type", e.target.value)}
-						>
-							<option value="texte">Texte</option>
-							<option value="image">Image</option>
-						</select>
-						<input
-							type="text"
-							className="border px-2 py-1 mr-2"
-							value={champ.nom}
-							onChange={(e) => modifierChamp(index, "nom", e.target.value)}
-							placeholder="Nom du champ"
-						/>
-						{champ.type === "texte" ? (
-							<>
+						{/* Titre + Bouton supprimer */}
+						<div className="flex justify-between items-center cursor-pointer">
+							{champEnEdition === index ? (
 								<input
 									type="text"
-									className="border px-2 py-1 mr-2"
-									value={champ.valeur}
-									onChange={(e) => modifierChamp(index, "valeur", e.target.value)}
-									placeholder="Valeur"
-								/>
-								<label className="mr-2">
-									<input
-										type="checkbox"
-										checked={champ.gras}
-										onChange={(e) => modifierChamp(index, "gras", e.target.checked)}
-									/> Gras
-								</label>
-								<label className="mr-2">
-									<input
-										type="checkbox"
-										checked={champ.italique}
-										onChange={(e) => modifierChamp(index, "italique", e.target.checked)}
-									/> Italique
-								</label>
-								<label className="mr-2">
-									<input
-										type="checkbox"
-										checked={champ.souligne}
-										onChange={(e) => modifierChamp(index, "souligne", e.target.checked)}
-									/> Souligné
-								</label>
-								<select
-									className="border px-2 py-1"
-									value={champ.font}
-									onChange={(e) => modifierChamp(index, "font", e.target.value)}
-								>
-									<option value="Roboto" style={{ fontFamily: "Roboto" }}>Roboto</option>
-									<option value="Open Sans" style={{ fontFamily: "Open Sans" }}>Open Sans</option>
-									<option value="Lobster" style={{ fontFamily: "Lobster" }}>Lobster</option>
-									<option value="Merriweather" style={{ fontFamily: "Merriweather" }}>Merriweather</option>
-									<option value="Pacifico" style={{ fontFamily: "Pacifico" }}>Pacifico</option>
-									<option value="Poppins" style={{ fontFamily: "Roboto" }}>Poppins</option>
-								</select>
-							</>
-						) : (
-							<>
-								<input
-									type="text"
-									className="border px-2 py-1 mr-2"
-									value={champ.valeur}
-									onChange={(e) => modifierChamp(index, "valeur", e.target.value)}
-									placeholder="URL de l'image"
-								/>
-								<input
-									type="file"
-									accept="image/*"
-									className="border px-2 py-1 mr-2"
-									onChange={(e) => handleImageUpload(index, e.target.files[0])}
-								/>
-								<div
-									className="border border-dashed p-2 text-center text-sm cursor-pointer bg-gray-50"
-									onDragOver={(e) => e.preventDefault()}
-									onDrop={(e) => {
-										e.preventDefault();
-										if (e.dataTransfer.files.length > 0) {
-											handleImageUpload(index, e.dataTransfer.files[0]);
-										}
+									className="font-semibold border px-2 py-1"
+									value={champ.nom}
+									autoFocus
+									onChange={(e) => modifierChamp(index, "nom", e.target.value)}
+									onBlur={() => setChampEnEdition(null)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") setChampEnEdition(null);
 									}}
+								/>
+							) : (
+								<span
+									className="font-semibold"
+									onClick={() => setChampEnEdition(index)}
 								>
-									Glisser-déposer une image ici
-								</div>
-								<input
-									type="number"
-									min="10"
-									className="border px-2 py-1 w-24 mr-2"
-									value={champ.largeur}
-									onChange={(e) => modifierChamp(index, "largeur", e.target.value)}
-									placeholder="Largeur (px)"
-								/>
-								<input
-									type="number"
-									min="10"
-									className="border px-2 py-1 w-24 mr-2"
-									value={champ.hauteur}
-									onChange={(e) => modifierChamp(index, "hauteur", e.target.value)}
-									placeholder="Hauteur (px)"
-								/>
-							</>
-						)}
-						<select
-							className="border px-2 py-1 mr-2"
-							value={champ.align}
-							onChange={(e) => modifierChamp(index, "align", e.target.value)}
-						>
-							<option value="left">Gauche</option>
-							<option value="center">Centre</option>
-							<option value="right">Droite</option>
-						</select>
-						{champ.type === "texte" && (
-							<>
-								<input
-									type="color"
-									className="border w-10 h-10 mr-2"
-									value={champ.couleur}
-									onChange={(e) => modifierChamp(index, "couleur", e.target.value)}
-									title="Couleur du texte"
-								/>
-								<input
-									type="number"
-									min="8"
-									max="72"
-									className="border px-2 py-1 w-20 mr-2"
-									value={champ.taille}
-									onChange={(e) => modifierChamp(index, "taille", e.target.value)}
-									placeholder="Taille"
-								/>
-							</>
-						)}
-						<input
-							type="number"
-							step="0.1"
-							min="0"
-							className="border px-2 py-1 w-20 mr-2"
-							value={champ.offset}
-							onChange={(e) => modifierChamp(index, "offset", e.target.value)}
-							placeholder="Décalage (cm)"
-						/>
-						<input
-							type="number"
-							step="0.1"
-							min="0"
-							className="border px-2 py-1 w-24 mr-2"
-							value={champ.top}
-							onChange={(e) => modifierChamp(index, "top", e.target.value)}
-							placeholder="Position verticale (cm)"
-						/>
-						<input
-							type="number"
-							step="0.05"
-							min="0"
-							max="1"
-							className="border px-2 py-1 w-24"
-							value={champ.opacite}
-							onChange={(e) => modifierChamp(index, "opacite", e.target.value)}
-							placeholder="Opacité (0-1)"
-						/>
-						<input
-							type="number"
-							step="1"
-							className="border px-2 py-1 w-24 mr-2"
-							value={champ.rotation}
-							onChange={(e) => modifierChamp(index, "rotation", e.target.value)}
-							placeholder="Rotation (°)"
-							title="Rotation du champ"
-						/>
+									{champ.nom || `Champ ${index + 1}`}
+								</span>
+							)}
 
+							<div className="flex items-center gap-2">
+								<span className="text-sm text-gray-500" onClick={() => toggleChamp(index)}>
+									{champsOuverts[index] ? "▲" : "▼"}
+								</span>
+								<button
+									onClick={() => supprimerChamp(index)}
+									className="text-red-600 hover:underline text-sm"
+								>
+									Supprimer
+								</button>
+							</div>
+						</div>
+
+
+						{/* Contenu conditionnel */}
+						{champsOuverts[index] && (
+							<>
+								<select
+									className="border px-2 py-1 mr-2"
+									value={champ.type}
+									onChange={(e) => modifierChamp(index, "type", e.target.value)}
+								>
+									<option value="texte">Texte</option>
+									<option value="image">Image</option>
+								</select>
+
+								{champ.type === "texte" ? (
+									<>
+										<input
+											type="text"
+											className="border px-2 py-1 mr-2"
+											value={champ.valeur}
+											onChange={(e) => modifierChamp(index, "valeur", e.target.value)}
+											placeholder="Valeur"
+										/>
+										<label className="mr-2">
+											<input
+												type="checkbox"
+												checked={champ.gras}
+												onChange={(e) => modifierChamp(index, "gras", e.target.checked)}
+											/> Gras
+										</label>
+										<label className="mr-2">
+											<input
+												type="checkbox"
+												checked={champ.italique}
+												onChange={(e) => modifierChamp(index, "italique", e.target.checked)}
+											/> Italique
+										</label>
+										<label className="mr-2">
+											<input
+												type="checkbox"
+												checked={champ.souligne}
+												onChange={(e) => modifierChamp(index, "souligne", e.target.checked)}
+											/> Souligné
+										</label>
+										<select
+											className="border px-2 py-1"
+											value={champ.font}
+											onChange={(e) => modifierChamp(index, "font", e.target.value)}
+										>
+											<option value="Roboto">Roboto</option>
+											<option value="Open Sans">Open Sans</option>
+											<option value="Lobster">Lobster</option>
+											<option value="Merriweather">Merriweather</option>
+											<option value="Pacifico">Pacifico</option>
+											<option value="Poppins">Poppins</option>
+										</select>
+									</>
+								) : (
+									<>
+										<input
+											type="text"
+											className="border px-2 py-1 mr-2"
+											value={champ.valeur}
+											onChange={(e) => modifierChamp(index, "valeur", e.target.value)}
+											placeholder="URL de l'image"
+										/>
+										<input
+											type="file"
+											accept="image/*"
+											className="border px-2 py-1 mr-2"
+											onChange={(e) => handleImageUpload(index, e.target.files[0])}
+										/>
+										<div
+											className="border border-dashed p-2 text-center text-sm cursor-pointer bg-gray-50"
+											onDragOver={(e) => e.preventDefault()}
+											onDrop={(e) => {
+												e.preventDefault();
+												if (e.dataTransfer.files.length > 0) {
+													handleImageUpload(index, e.dataTransfer.files[0]);
+												}
+											}}
+										>
+											Glisser-déposer une image ici
+										</div>
+										<input
+											type="number"
+											min="10"
+											className="border px-2 py-1 w-24 mr-2"
+											value={champ.largeur}
+											onChange={(e) => modifierChamp(index, "largeur", e.target.value)}
+											placeholder="Largeur (px)"
+										/>
+										<input
+											type="number"
+											min="10"
+											className="border px-2 py-1 w-24 mr-2"
+											value={champ.hauteur}
+											onChange={(e) => modifierChamp(index, "hauteur", e.target.value)}
+											placeholder="Hauteur (px)"
+										/>
+									</>
+								)}
+
+								{/* Alignement + Couleurs + Positions */}
+								<select
+									className="border px-2 py-1 mr-2"
+									value={champ.align}
+									onChange={(e) => modifierChamp(index, "align", e.target.value)}
+								>
+									<option value="left">Gauche</option>
+									<option value="center">Centre</option>
+									<option value="right">Droite</option>
+								</select>
+
+								{champ.type === "texte" && (
+									<>
+										<input
+											type="color"
+											className="border w-10 h-10 mr-2"
+											value={champ.couleur}
+											onChange={(e) => modifierChamp(index, "couleur", e.target.value)}
+											title="Couleur du texte"
+										/>
+										<input
+											type="number"
+											min="8"
+											max="72"
+											className="border px-2 py-1 w-20 mr-2"
+											value={champ.taille}
+											onChange={(e) => modifierChamp(index, "taille", e.target.value)}
+											placeholder="Taille"
+										/>
+									</>
+								)}
+
+								<input
+									type="number"
+									step="0.1"
+									min="0"
+									className="border px-2 py-1 w-20 mr-2"
+									value={champ.offset}
+									onChange={(e) => modifierChamp(index, "offset", e.target.value)}
+									placeholder="Décalage (cm)"
+								/>
+								<input
+									type="number"
+									step="0.1"
+									min="0"
+									className="border px-2 py-1 w-24 mr-2"
+									value={champ.top}
+									onChange={(e) => modifierChamp(index, "top", e.target.value)}
+									placeholder="Position verticale (cm)"
+								/>
+								<input
+									type="number"
+									step="0.05"
+									min="0"
+									max="1"
+									className="border px-2 py-1 w-24"
+									value={champ.opacite}
+									onChange={(e) => modifierChamp(index, "opacite", e.target.value)}
+									placeholder="Opacité (0-1)"
+								/>
+								<input
+									type="number"
+									step="1"
+									className="border px-2 py-1 w-24 mr-2"
+									value={champ.rotation}
+									onChange={(e) => modifierChamp(index, "rotation", e.target.value)}
+									placeholder="Rotation (°)"
+									title="Rotation du champ"
+								/>
+							</>
+						)}
 					</div>
 				))}
+
 				<div className="mt-4 space-x-2">
 					<button
 						onClick={ajouterChamp}
