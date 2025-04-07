@@ -206,6 +206,22 @@ export default function EditeurCartes({ deckNom, onReset }) {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(nouvellesCartes));
 	};
 
+	const dupliquerChamp = (index) => {
+		const champACopier = champs[index];
+		const copie = { ...champACopier }; // copie indépendante
+	
+		const nouveauxChamps = [...champs];
+		nouveauxChamps.splice(index + 1, 0, copie); // insère après l’original
+	
+		const nouvellesCartes = cartes.map((c) =>
+			c.id === carteActiveId ? { ...c, champs: nouveauxChamps } : c
+		);
+	
+		setCartes(nouvellesCartes);
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(nouvellesCartes));
+	};
+	
+
 
 	const handleImageUpload = (index, file) => {
 		const reader = new FileReader();
@@ -407,6 +423,12 @@ export default function EditeurCartes({ deckNom, onReset }) {
 									className="text-red-600 hover:underline text-sm"
 								>
 									Supprimer
+								</button>
+								<button
+									onClick={() => dupliquerChamp(index)}
+									className="text-blue-600 hover:underline text-sm"
+>
+									Dupliquer
 								</button>
 							</div>
 						</div>
