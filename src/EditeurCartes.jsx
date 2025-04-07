@@ -72,6 +72,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 				top: 0,
 				largeur: 100,
 				hauteur: 100,
+				rotation: 0,
 				gras: false,
 				italique: false,
 				souligne: false,
@@ -84,7 +85,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 		setCartes(nouvellesCartes);
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(nouvellesCartes));
 	};
-	
+
 
 	const supprimerChamp = (index) => {
 		const nouveauxChamps = champs.filter((_, i) => i !== index);
@@ -94,7 +95,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 		setCartes(nouvellesCartes);
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(nouvellesCartes));
 	};
-	
+
 
 	const supprimerCarte = (id) => {
 		Swal.fire({
@@ -127,7 +128,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 			titre: `Carte ${cartes.length + 1}`,
 			champs: [
 				{
-					nom: "Nom",
+					nom: "",
 					valeur: "",
 					type: "texte",
 					align: "left",
@@ -138,6 +139,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 					top: 0,
 					largeur: 100,
 					hauteur: 100,
+					rotation: 0,
 					gras: false,
 					italique: false,
 					souligne: false,
@@ -156,7 +158,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 		localStorage.removeItem(STORAGE_KEY);
 		setCarteActive({
 			champs: [{
-				nom: "Nom",
+				nom: "",
 				valeur: "",
 				type: "texte",
 				align: "left",
@@ -167,6 +169,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 				top: 0,
 				largeur: 100,
 				hauteur: 100,
+				rotation: 0,
 				gras: false,
 				italique: false,
 				souligne: false,
@@ -182,21 +185,21 @@ export default function EditeurCartes({ deckNom, onReset }) {
 		nouveauxChamps[index][cle] = ["offset", "taille", "top", "largeur", "hauteur", "opacite"].includes(cle)
 			? parseFloat(nouvelleValeur)
 			: nouvelleValeur;
-	
+
 		const nouvellesCartes = cartes.map((c) =>
 			c.id === carteActiveId ? { ...c, champs: nouveauxChamps } : c
 		);
 		setCartes(nouvellesCartes);
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(nouvellesCartes));
 	};
-	
+
 
 	const handleImageUpload = (index, file) => {
 		const reader = new FileReader();
 		reader.onload = (e) => {
 			const nouveauxChamps = [...champs];
 			nouveauxChamps[index].valeur = e.target.result;
-	
+
 			const nouvellesCartes = cartes.map((c) =>
 				c.id === carteActiveId ? { ...c, champs: nouveauxChamps } : c
 			);
@@ -205,7 +208,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 		};
 		reader.readAsDataURL(file);
 	};
-	
+
 
 	const exporterPNG = async () => {
 		if (!cardRef.current) return;
@@ -528,6 +531,16 @@ export default function EditeurCartes({ deckNom, onReset }) {
 							onChange={(e) => modifierChamp(index, "opacite", e.target.value)}
 							placeholder="Opacité (0-1)"
 						/>
+						<input
+							type="number"
+							step="1"
+							className="border px-2 py-1 w-24 mr-2"
+							value={champ.rotation}
+							onChange={(e) => modifierChamp(index, "rotation", e.target.value)}
+							placeholder="Rotation (°)"
+							title="Rotation du champ"
+						/>
+
 					</div>
 				))}
 				<div className="mt-4 space-x-2">
@@ -658,6 +671,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 								onChange={(e) => setHauteurCarte(parseFloat(e.target.value))}
 							/>
 						</label>
+
 					</div>
 				</div>
 
@@ -677,11 +691,16 @@ export default function EditeurCartes({ deckNom, onReset }) {
 				>
 					{champs.map((champ, index) => {
 						const alignment = champ.align === "center" ? "center" : champ.align === "right" ? "flex-end" : "flex-start";
+
+						const baseTransform = champ.align === "center"
+							? `translateX(-50%) rotate(${champ.rotation || 0}deg)`
+							: `rotate(${champ.rotation || 0}deg)`;
+
 						const offsetStyle = champ.align === "left"
 							? { left: `${champ.offset}px` }
 							: champ.align === "right"
 								? { right: `${champ.offset}px` }
-								: { left: "50%", transform: "translateX(-50%)" };
+								: { left: "50%" }; // plus de transform ici !
 
 						return (
 							<div
@@ -694,23 +713,21 @@ export default function EditeurCartes({ deckNom, onReset }) {
 									color: champ.couleur,
 									opacity: champ.opacite,
 									fontSize: champ.type === "texte" ? `${champ.taille}px` : undefined,
+									transform: baseTransform,
 									...offsetStyle,
 								}}
 							>
 								{champ.type === "texte" ? (
-									<>
-										<span
-											style={{
-												fontWeight: champ.gras ? "bold" : "normal",
-												fontStyle: champ.italique ? "italic" : "normal",
-												textDecoration: champ.souligne ? "underline" : "none",
-												fontFamily: champ.font || "Roboto"
-											}}
-										>
-											{champ.valeur}
-										</span>
-
-									</>
+									<span
+										style={{
+											fontWeight: champ.gras ? "bold" : "normal",
+											fontStyle: champ.italique ? "italic" : "normal",
+											textDecoration: champ.souligne ? "underline" : "none",
+											fontFamily: champ.font || "Roboto"
+										}}
+									>
+										{champ.valeur}
+									</span>
 								) : (
 									<img
 										src={champ.valeur}
@@ -725,6 +742,7 @@ export default function EditeurCartes({ deckNom, onReset }) {
 							</div>
 						);
 					})}
+
 				</div>
 			</div>
 		</div>
