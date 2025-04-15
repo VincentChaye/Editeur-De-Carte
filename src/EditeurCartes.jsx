@@ -115,6 +115,35 @@ export default function EditeurCartes({ deckNom, onReset }) {
 	};
 
 
+	const publierDeck = async () => {
+		const deckData = {
+		  nom: deckNom,
+		  cartes: cartes
+		};
+	  
+		try {
+		  const res = await fetch("http://localhost:5000/api/decks", {
+			method: "POST",
+			headers: {
+			  "Content-Type": "application/json"
+			},
+			body: JSON.stringify(deckData)
+		  });
+	  
+		  const data = await res.json();
+		  if (res.ok) {
+			Swal.fire("Succès", "Deck publié avec succès !", "success");
+		  } else {
+			throw new Error(data.message || "Erreur lors de la publication");
+		  }
+		} catch (err) {
+		  console.error(err);
+		  Swal.fire("Erreur", "Impossible de publier le deck", "error");
+		}
+	  };
+	  
+
+
 	const supprimerCarte = (id) => {
 		Swal.fire({
 			title: "Supprimer cette carte ?",
@@ -250,6 +279,19 @@ export default function EditeurCartes({ deckNom, onReset }) {
 	};
 
 
+	function waitForImagesToLoad(container) {
+		const images = container.querySelectorAll('img');
+		const promises = Array.from(images).map((img) => {
+		  if (img.complete) return Promise.resolve();
+		  return new Promise((resolve) => {
+			img.onload = resolve;
+			img.onerror = resolve; // même si l’image échoue
+		  });
+		});
+		return Promise.all(promises);
+	  }
+	  
+
 	const handleImageUpload = (index, file) => {
 		const reader = new FileReader();
 		reader.onload = (e) => {
@@ -268,6 +310,8 @@ export default function EditeurCartes({ deckNom, onReset }) {
 
 	const exporterPNG = async () => {
 		if (!cardRef.current) return;
+
+		await waitForImagesToLoad(cardRef.current); 
 
 		const scale = 2;
 		const canvas = await html2canvas(cardRef.current, { scale });
@@ -293,6 +337,8 @@ export default function EditeurCartes({ deckNom, onReset }) {
 
 	const exporterPDF = async () => {
 		if (!cardRef.current) return;
+
+		await waitForImagesToLoad(cardRef.current); 
 
 		const scale = 2; // qualité d'image améliorée
 		const canvas = await html2canvas(cardRef.current, { scale });
@@ -700,6 +746,13 @@ export default function EditeurCartes({ deckNom, onReset }) {
 					>
 						Importer JSON
 					</button>
+					<button
+						onClick={publierDeck}
+						className="bg-emerald-600 text-white px-4 py-2 rounded mt-2"
+					>
+						Publier le deck
+					</button>
+
 				</div>
 				<div className="flex items-center justify-between mb-4">
 					<h2 className="text-2xl font-bold">Deck : {deckNom}</h2>
