@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import AccueilDeck from "./AccueilDeck";
-import EditeurCartes from "./EditeurCartes";
+import AccueilDeck from "./components/AccueilDeck";
+import EditeurCartes from "./components/EditeurCartes/EditeurCartes";
 
 export default function App() {
 	const [deckNom, setDeckNom] = useState("");
